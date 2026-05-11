@@ -1,0 +1,38 @@
+# Собранные бинарники (не нужны в репозитории)
+build/
+*.exe
+*.out
+*.o
+*.obj
+
+# Файлы CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+CMakeUserPresets.json
+
+# Папки с собранными программами
+Debug/
+Release/
+x64/
+x86/
+
+# Временные файлы IDE
+.vscode/
+.idea/
+*.user
+*.suo
+*.sln
+*.vcxproj
+*.filters
+
+# Временные файлы Windows
+*.tmp
+*.log
+*.stackdump
+
+# Файлы операционной системы
+.DS_Store
+Thumbs.db
+desktop.ini
