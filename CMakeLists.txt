@@ -4,7 +4,6 @@ project(SnakeGame VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Определяем платформу
 if(WIN32)
     add_compile_definitions(PLATFORM_WINDOWS)
 else()
@@ -14,36 +13,43 @@ endif()
 # Основной исполняемый файл
 add_executable(snake_game
     src/main.cpp
-    src/Game.cpp
-    src/Snake.cpp
-    src/Food.cpp
-    src/Renderer.cpp
+    src/Game/Game.cpp
+    src/Snake/Snake.cpp
+    src/Food/Food.cpp
+    src/Renderer/Renderer.cpp
 )
 
 # Тесты
 add_executable(snake_tests
     tests/test_snake.cpp
-    src/Snake.cpp
+    src/Snake/Snake.cpp
 )
 
-# Настройки для Windows
 if(WIN32)
     target_link_options(snake_game PRIVATE -static)
     target_link_options(snake_tests PRIVATE -static)
 endif()
 
 # Включаем директории
-target_include_directories(snake_game PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_include_directories(snake_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(snake_game PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/Game
+    ${CMAKE_SOURCE_DIR}/src/Snake
+    ${CMAKE_SOURCE_DIR}/src/Food
+    ${CMAKE_SOURCE_DIR}/src/Renderer
+)
 
-# Для Linux добавляем библиотеку ncurses
+target_include_directories(snake_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/Snake
+)
+
 if(NOT WIN32)
     find_package(Curses REQUIRED)
     target_link_libraries(snake_game ${CURSES_LIBRARIES})
     target_include_directories(snake_game PRIVATE ${CURSES_INCLUDE_DIR})
 endif()
 
-# Включение предупреждений
 if(MSVC)
     target_compile_options(snake_game PRIVATE /W4)
 else()

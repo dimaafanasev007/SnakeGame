@@ -47,8 +47,8 @@ void Renderer::initConsole() {
 void Renderer::gotoxy(int x, int y) {
     #ifdef PLATFORM_WINDOWS
         COORD coord;
-        coord.X = x;
-        coord.Y = y;
+        coord.X = static_cast<SHORT>(x);
+        coord.Y = static_cast<SHORT>(y);
         SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
     #else
         move(y, x);

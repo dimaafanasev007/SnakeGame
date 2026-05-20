@@ -1,7 +1,7 @@
 #include "Food.hpp"
 #include <chrono>
 
-Food::Food() : rng(std::chrono::steady_clock::now().time_since_epoch().count()) {
+Food::Food() : rng(static_cast<unsigned int>(std::chrono::steady_clock::now().time_since_epoch().count())) {
     position = {0, 0};
 }
 
