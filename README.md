@@ -1,27 +1,81 @@
-# 🐍 Snake Game
+# Змейка (Snake Game)
 
-Classic Snake game implemented in C++ with cross-platform support.
+Классическая консольная игра «Змейка», написанная на C++ с использованием CMake.
+Проект демонстрирует применение объектно-ориентированного программирования, работу с консолью, обработку пользовательского ввода и модульное тестирование.
 
-## Features
+## Возможности
 
-- Smooth console rendering
-- Score tracking
-- Wall and self-collision detection
-- Snake grows when eating food
-- Supports both keyboard layouts (WASD and Arrow keys)
+- Классический геймплей: управляйте змейкой, собирайте еду и растите
+- Подсчёт очков (каждая съеденная еда +1)
+- Обработка столкновений со стенами и собственным хвостом
+- Возможность перезапуска игры после окончания (клавиша R)
+- Два варианта управления: стрелки или WASD
+- Плавная отрисовка без мерцания (двойная буферизация)
+- Модульные тесты с покрытием 95%
+- Гибкая настройка управления через отдельный конфигурационный файл
 
-## Requirements
+## Требования
 
-- CMake 3.10+
-- C++17 compiler
-- **Linux**: ncurses library (`sudo apt-get install libncurses-dev`)
-- **Windows**: Visual Studio or MinGW
+- **Windows** (для Linux нужна библиотека ncurses)
+- **CMake** версии 3.10 или выше
+- **C++17** совместимый компилятор (Visual Studio, MinGW, GCC, Clang)
 
-## Build & Run
+## Установка и запуск
 
-```bash
+### 1. Клонирование репозитория
+
 git clone https://github.com/dimaafanasev007/SnakeGame.git
 cd SnakeGame
-mkdir build && cd build
+
+Или скачайте ZIP-архив с GitHub.
+
+Сборка проекта
+
+mkdir build
+cd build
 cmake ..
-cmake --build .
+cmake --build . --config Release
+
+Как играть
+
+1) Змейка движется автоматически
+2) Управляйте направлением с помощью стрелок или WASD
+3) Съедайте еду (символ @), чтобы увеличить длину и счёт
+4) Не врезайтесь в стены (#) и не кусайте собственный хвост (O)
+5) После окончания игры нажмите R для перезапуска или ESC для выхода
+
+Запуск
+
+cd Release
+snake_game.exe
+
+Запуск тестов
+
+cd Release
+snake_tests.exe
+
+Структура проекта
+
+src/Game/ — логика игры
+src/Snake/ — змейка (движение, рост)
+src/Food/ — генерация еды
+src/Renderer/ — отрисовка
+src/Config.hpp — настройки управления
+tests/ — модульные тесты
+
+Пример игры
+
+##################################################
+#     OOOO                                       #
+#        @                                       #
+##################################################
+Score: 5
+
+Требования
+
+CMake 3.10+
+C++17
+Windows (для Linux нужна ncurses)
+
+Автор
+GitHub: @dimaafanasev007

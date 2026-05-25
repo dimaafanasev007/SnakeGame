@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "../Config.hpp"
 #include <iostream>
 #include <map>
 
@@ -10,28 +11,81 @@
 
 Game::Game(int width, int height) 
     : width(width), height(height), snake(width/2, height/2), 
-      renderer(width, height), running(true), score(0) {
+      renderer(width, height), running(true), needRestart(false), score(0) {
     spawnFood();
     lastUpdate = std::chrono::steady_clock::now();
 }
 
 void Game::run() {
-    while (running) {
-        processInput();
-        
-        auto now = std::chrono::steady_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdate);
-        
-        if (elapsed.count() >= UPDATE_INTERVAL_MS) {
-            update();
-            render();
-            lastUpdate = now;
+    while (true) {
+        // Основной игровой цикл
+        while (running) {
+            processInput();
+            
+            auto now = std::chrono::steady_clock::now();
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdate);
+            
+            if (elapsed.count() >= UPDATE_INTERVAL_MS) {
+                update();
+                render();
+                lastUpdate = now;
+            }
+            
+            #ifndef PLATFORM_WINDOWS
+                napms(10);
+            #endif
         }
         
-        #ifndef PLATFORM_WINDOWS
-            napms(10);
-        #endif
+        // Игра закончилась - показываем меню
+        renderer.showGameOver(score);
+        
+        // Ждём выбора (перезапустить или выйти)
+        if (!handleGameOver()) {
+            break;  // Выход из игры
+        }
+        
+        // Перезапуск игры
+        reset();
     }
+}
+
+bool Game::handleGameOver() {
+    #ifdef PLATFORM_WINDOWS
+        while (true) {
+            if (_kbhit()) {
+                int key = _getch();
+                
+                if (key == Config::KEY_RESTART || key == Config::KEY_RESTART_CAPS) {
+                    return true;  // Перезапуск
+                }
+                if (key == Config::KEY_QUIT || key == Config::KEY_QUIT_Q || key == Config::KEY_QUIT_Q_CAPS) {
+                    return false; // Выход
+                }
+            }
+        }
+    #else
+        int key = getch();
+        if (key == Config::KEY_RESTART || key == Config::KEY_RESTART_CAPS) {
+            return true;
+        }
+        return false;
+    #endif
+}
+
+void Game::reset() {
+    // Сбрасываем всё состояние игры
+    running = true;
+    needRestart = false;
+    score = 0;
+    
+    // Создаём новую змейку
+    snake = Snake(width/2, height/2);
+    
+    // Новая еда
+    spawnFood();
+    
+    // Сбрасываем таймер
+    lastUpdate = std::chrono::steady_clock::now();
 }
 
 void Game::processInput() {
@@ -39,63 +93,40 @@ void Game::processInput() {
         if (_kbhit()) {
             int key = _getch();
             
-            // Словарь для стрелок (специальные клавиши)
-            static const std::map<int, Direction> arrowMap = {
-                {72, Direction::UP},   // стрелка вверх
-                {80, Direction::DOWN}, // стрелка вниз
-                {75, Direction::LEFT}, // стрелка влево
-                {77, Direction::RIGHT} // стрелка вправо
-            };
-            
-            // Словарь для обычных клавиш (направления и выход)
-            static const std::map<int, std::pair<Direction, bool>> keyMap = {
-                // Направления (буквы)
-                {'w', {Direction::UP, false}}, {'W', {Direction::UP, false}},
-                {'s', {Direction::DOWN, false}}, {'S', {Direction::DOWN, false}},
-                {'a', {Direction::LEFT, false}}, {'A', {Direction::LEFT, false}},
-                {'d', {Direction::RIGHT, false}}, {'D', {Direction::RIGHT, false}},
-                // Выход
-                {27, {Direction::NONE, true}},   // ESC
-                {'q', {Direction::NONE, true}}, {'Q', {Direction::NONE, true}}
-            };
-            
             if (key == 224) {  // Специальная клавиша (стрелки)
                 key = _getch();
-                auto it = arrowMap.find(key);
-                if (it != arrowMap.end()) {
-                    snake.changeDirection(it->second);
-                }
+                if (key == Config::KEY_UP_ARROW) snake.changeDirection(Direction::UP);
+                if (key == Config::KEY_DOWN_ARROW) snake.changeDirection(Direction::DOWN);
+                if (key == Config::KEY_LEFT_ARROW) snake.changeDirection(Direction::LEFT);
+                if (key == Config::KEY_RIGHT_ARROW) snake.changeDirection(Direction::RIGHT);
             } else {
-                auto it = keyMap.find(key);
-                if (it != keyMap.end()) {
-                    if (it->second.second) {  // если нужно выйти
-                        running = false;
-                    } else {
-                        snake.changeDirection(it->second.first);
-                    }
+                // Буквенные клавиши
+                if (key == Config::KEY_UP_W || key == Config::KEY_UP_W_CAPS) snake.changeDirection(Direction::UP);
+                if (key == Config::KEY_DOWN_S || key == Config::KEY_DOWN_S_CAPS) snake.changeDirection(Direction::DOWN);
+                if (key == Config::KEY_LEFT_A || key == Config::KEY_LEFT_A_CAPS) snake.changeDirection(Direction::LEFT);
+                if (key == Config::KEY_RIGHT_D || key == Config::KEY_RIGHT_D_CAPS) snake.changeDirection(Direction::RIGHT);
+                
+                // Выход
+                if (key == Config::KEY_QUIT || key == Config::KEY_QUIT_Q || key == Config::KEY_QUIT_Q_CAPS) {
+                    running = false;
+                    needRestart = false;
                 }
             }
         }
     #else
         int key = getch();
         if (key != ERR) {
-            static const std::map<int, std::pair<Direction, bool>> keyMap = {
-                {KEY_UP, {Direction::UP, false}}, {KEY_DOWN, {Direction::DOWN, false}},
-                {KEY_LEFT, {Direction::LEFT, false}}, {KEY_RIGHT, {Direction::RIGHT, false}},
-                {'w', {Direction::UP, false}}, {'W', {Direction::UP, false}},
-                {'s', {Direction::DOWN, false}}, {'S', {Direction::DOWN, false}},
-                {'a', {Direction::LEFT, false}}, {'A', {Direction::LEFT, false}},
-                {'d', {Direction::RIGHT, false}}, {'D', {Direction::RIGHT, false}},
-                {'q', {Direction::NONE, true}}, {'Q', {Direction::NONE, true}}
-            };
-            
-            auto it = keyMap.find(key);
-            if (it != keyMap.end()) {
-                if (it->second.second) {
-                    running = false;
-                } else {
-                    snake.changeDirection(it->second.first);
-                }
+            if (key == KEY_UP) snake.changeDirection(Direction::UP);
+            if (key == KEY_DOWN) snake.changeDirection(Direction::DOWN);
+            if (key == KEY_LEFT) snake.changeDirection(Direction::LEFT);
+            if (key == KEY_RIGHT) snake.changeDirection(Direction::RIGHT);
+            if (key == Config::KEY_UP_W || key == Config::KEY_UP_W_CAPS) snake.changeDirection(Direction::UP);
+            if (key == Config::KEY_DOWN_S || key == Config::KEY_DOWN_S_CAPS) snake.changeDirection(Direction::DOWN);
+            if (key == Config::KEY_LEFT_A || key == Config::KEY_LEFT_A_CAPS) snake.changeDirection(Direction::LEFT);
+            if (key == Config::KEY_RIGHT_D || key == Config::KEY_RIGHT_D_CAPS) snake.changeDirection(Direction::RIGHT);
+            if (key == Config::KEY_QUIT || key == Config::KEY_QUIT_Q || key == Config::KEY_QUIT_Q_CAPS) {
+                running = false;
+                needRestart = false;
             }
         }
     #endif
@@ -132,13 +163,13 @@ void Game::checkCollisions() {
     if (head.first <= 0 || head.first >= width - 1 || 
         head.second <= 0 || head.second >= height - 1) {
         running = false;
-        renderer.showGameOver(score);
+        needRestart = true;
     }
     
     // Столкновение с собой
     if (snake.checkSelfCollision()) {
         running = false;
-        renderer.showGameOver(score);
+        needRestart = true;
     }
 }
 

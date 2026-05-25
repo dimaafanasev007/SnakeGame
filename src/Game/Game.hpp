@@ -1,9 +1,9 @@
 #ifndef GAME_HPP
 #define GAME_HPP
 
-#include "Snake.hpp"
-#include "Food.hpp"
-#include "Renderer.hpp"
+#include "../Snake/Snake.hpp"
+#include "../Food/Food.hpp"
+#include "../Renderer/Renderer.hpp"
 #include <chrono>
 
 class Game {
@@ -21,12 +21,15 @@ private:
     void render();
     void checkCollisions();
     void spawnFood();
+    bool handleGameOver();
+    void reset();
     
     int width, height;
     Snake snake;
     Food food;
     Renderer renderer;
     bool running;
+    bool needRestart;
     int score;
     std::chrono::steady_clock::time_point lastUpdate;
     static constexpr int UPDATE_INTERVAL_MS = 150;

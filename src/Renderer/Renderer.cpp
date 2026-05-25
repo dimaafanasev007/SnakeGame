@@ -112,14 +112,13 @@ void Renderer::showGameOver(int score) {
         std::cout << "\n\n\n\n\n";
         std::cout << "     ========== GAME OVER ==========\n\n";
         std::cout << "          Final Score: " << score << "\n\n";
-        std::cout << "     Press any key to exit...\n";
+        std::cout << "     Press R to restart, ESC to quit\n";
         std::cout << "     ================================\n";
-        _getch();
     #else
         clear();
         mvprintw(height/2 - 2, (width-20)/2, "========== GAME OVER ==========");
         mvprintw(height/2, (width-20)/2, "Final Score: %d", score);
-        mvprintw(height/2 + 2, (width-20)/2, "Press any key to exit...");
+        mvprintw(height/2 + 2, (width-20)/2, "Press R to restart, ESC to quit");
         mvprintw(height/2 + 4, (width-20)/2, "================================");
         refresh();
         nodelay(stdscr, FALSE);
